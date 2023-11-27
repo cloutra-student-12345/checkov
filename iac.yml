@@ -1,0 +1,53 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Cloudformation template for S3, SNS and IAM role
+Parameters:
+  username:
+    Description: your cloutra username
+    Type: String
+    Default: cloutra-username1234
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "products-bucket-${username}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: "Name"
+          Value: !Sub ${username}
+
+  MySNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: "My SNS Topic"
+      TopicName: "cloutra-sns-topic"
+
+  MyIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "cloutra-iam-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "ec2.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "MyPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:ListBucket"
+                  - "s3:GetObject"
+                Resource: !Sub "arn:aws:s3:::products-bucket-${username}/*"
+      Tags:
+        - Key: "Name"
+          Value: !Sub ${username}
